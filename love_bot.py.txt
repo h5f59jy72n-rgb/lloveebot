@@ -1,0 +1,69 @@
+import asyncio
+from datetime import time
+from telegram import Update, InputFile
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+TOKEN = "8289400217:AAH2HYznYpuc-QOc4W8y0KrDpY_1rQfIbCY
+"
+
+PHOTO_PATH = "love_photo.jpg"
+
+START_TEXT = (
+    "Катя ❤️\n\n"
+    "Я — Денис.\n"
+    "Я люблю тебя очень сильно 💞💖\n\n"
+    "Я написал этого бота ради тебя,\n"
+    "чтобы даже когда меня нет рядом,\n"
+    "ты каждый день знала,\n"
+    "как сильно ты мне дорога 💓\n\n"
+    "Этот бот будет каждый день\n"
+    "напоминать тебе о моей любви,\n"
+    "заботе и тепле ❤️\n\n"
+    "Помни:\n"
+    "я всегда думаю о тебе\n"
+    "и очень тебя люблю 💘"
+)
+
+DAILY_TEXT = "Помни, я тебя очень сильно люблю ❤️💞"
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+
+    await context.bot.send_photo(
+        chat_id=chat_id,
+        photo=InputFile(PHOTO_PATH),
+        caption=START_TEXT
+    )
+
+    context.application.chat_data[chat_id] = True
+
+
+async def daily_message(context: ContextTypes.DEFAULT_TYPE):
+    for chat_id in context.application.chat_data.keys():
+        try:
+            await context.bot.send_photo(
+                chat_id=chat_id,
+                photo=InputFile(PHOTO_PATH),
+                caption=DAILY_TEXT
+            )
+        except:
+            pass
+
+
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+
+    # ⏰ время ежедневного сообщения (можем поменять)
+    app.job_queue.run_daily(
+        daily_message,
+        time=time(hour=10, minute=0)
+    )
+
+    await app.run_polling()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
